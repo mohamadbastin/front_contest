@@ -7,7 +7,7 @@ from users.models import Profile
 class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['pk','username', ]
+        fields = ['pk', 'username', ]
 
 
 class ProfileDetailSerializer(serializers.ModelSerializer):
@@ -15,7 +15,7 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['pk','user', 'email', 'phone_number', 'info', 'first_name',
+        fields = ['pk', 'user', 'email', 'phone_number', 'info', 'first_name',
                   'last_name', 'student_number', 'code_melli', 'bank_account']
 
 
@@ -26,7 +26,7 @@ class ProfileCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['pk','username', 'password', 'email', 'phone_number', 'info', 'first_name',
+        fields = ['pk', 'username', 'password', 'email', 'phone_number', 'info', 'first_name',
                   'last_name', 'student_number', 'code_melli', 'bank_account']
 
     def create(self, validated_data):
@@ -42,25 +42,32 @@ class ProfileCreateSerializer(serializers.ModelSerializer):
 
 class BookSerializer(serializers.ModelSerializer):
     profile = ProfileDetailSerializer(read_only=True)
+    sell_pk = serializers.SerializerMethodField(required=False, read_only=True)
 
     class Meta:
         model = Book
         fields = ['pk',
-            'profile',
-            'book_state',
-            'title',
-            'author',
-            'translator',
-            'publisher',
-            'chap',
-            'date_published',
-            'pages',
-            'description'
-        ]
+                  'sell_pk',
+                  'profile',
+                  'book_state',
+                  'title',
+                  'author',
+                  'translator',
+                  'publisher',
+                  'chap',
+                  'date_published',
+                  'pages',
+                  'description'
+                  ]
 
-        read_only_fields = ['profile', ]
+        read_only_fields = ['profile', 'sell_pk']
+
+    def get_sell_pk(self, obj):
+        print(obj)
+        return obj.sell.first().pk
 
     def create(self, validated_data):
+        # del validated_data['sell_pk']
         profile = self.context.get('profile', None)
 
         book = Book(**validated_data)
@@ -68,7 +75,32 @@ class BookSerializer(serializers.ModelSerializer):
 
         book.save()
 
-        return book
+        sell = Sell(book=book, profile=profile)
+        sell.save()
+
+        return Sell
+
+
+class SellSerializer(serializers.ModelSerializer):
+    profile = ProfileDetailSerializer(read_only=True)
+    book = BookSerializer(read_only=True)
+
+    class Meta:
+        model = Sell
+        fields = ['pk', 'book', 'profile']
+
+    read_only_fields = ['profile', 'book']
+
+
+class SellDetailSerializer(serializers.ModelSerializer):
+    profile = ProfileDetailSerializer(read_only=True)
+    book = BookSerializer(read_only=True)
+
+    class Meta:
+        model = Sell
+        fields = ['pk', 'profile', 'book', ]
+
+    read_only_fields = ['profile', 'book']
 
 
 class RequestSerializer(serializers.ModelSerializer):
@@ -77,7 +109,7 @@ class RequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Request
-        fields = ['pk','sender', 'sell', 'book', 'status']
+        fields = ['pk', 'sender', 'sell', 'book', 'status']
         read_only_fields = ['sender', 'book', 'status']
 
         extra_kwargs = {'sell': {'write_only': True}}
@@ -95,4 +127,3 @@ class RequestSerializer(serializers.ModelSerializer):
         request.save()
 
         return request
-

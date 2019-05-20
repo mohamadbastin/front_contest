@@ -152,26 +152,26 @@ class SubmitBookView(CreateAPIView):
 
 
 class BookListView(ListAPIView):
-    serializer_class = BookSerializer
-    queryset = Book.objects.all()
+    serializer_class = SellSerializer
+    queryset = Sell.objects.all()
 
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = (
-        'profile',
-        'book_state',
-        'title',
-        'author',
-        'translator',
-        'publisher',
-        'chap',
-        'date_published',
-        'pages',
-        'description')
+        'book__profile',
+        'book__book_state',
+        'book__title',
+        'book__author',
+        'book__translator',
+        'book__publisher',
+        'book__chap',
+        'book__date_published',
+        'book__pages',
+        'book__description')
 
 
 class BookDetailView(RetrieveAPIView):
-    serializer_class = BookSerializer
-    queryset = Book.objects.all()
+    serializer_class = SellDetailSerializer
+    queryset = Sell.objects.all()
 
 
 class RequestCreateView(CreateAPIView):

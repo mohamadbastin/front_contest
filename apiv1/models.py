@@ -44,7 +44,7 @@ class Images(models.Model):
 
 
 class Sell(models.Model):
-    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='sell')
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     @property
